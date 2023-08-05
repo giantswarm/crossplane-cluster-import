@@ -1,0 +1,32 @@
+---
+apiVersion: crossplane.giantswarm.io/v1alpha1
+kind: EksImportClaim
+metadata:
+  name: sample-customer
+  namespace: org-sample
+  labels:
+    owner: honeybadger
+spec:
+  namespace: org-sample
+  labels:
+    provider: aws
+    app.kubernetes.io/instance: eks-import
+    app.kubernetes.io/managed-by: crossplane
+  kubernetesAdditionalLabels:
+    app: cluster-eks
+    app.kubernetes.io/managed-by: crossplane
+    cluster-apps-operator.giantswarm.io/watching: ""
+    cluster.x-k8s.io/watch-filter: capi
+    giantswarm.io/organization: giantswarm
+    giantswarm.io/service-priority: highest
+
+  compositionSelector:
+    matchLabels:
+      provider: aws
+      component: aws-eks-importer
+  parameters:
+    awsProviderConfigRef: eks-import
+    kubernetesProviderConfigRef: kubernetes-provider
+    clusterName: sample-customer
+    nodeGroupName: ng-1
+    region: eu-central-1

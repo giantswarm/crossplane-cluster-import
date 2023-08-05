@@ -1,0 +1,83 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "*",
+            "Condition": {
+                "ForAnyValue:StringLike": {
+                    "aws:PrincipalArn": [
+                        "arn:aws:sts::${AWS_ACCOUNT_ID}:role/crossplane-assume-role",
+                        "arn:aws:sts::${AWS_ACCOUNT_ID}:assumed-role/eks-import-crossplane-role*"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:DescribeInstances",
+                "eks:DescribeFargateProfile",
+                "eks:ListTagsForResource",
+                "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
+                "eks:DescribeAddon",
+                "eks:DescribeNodegroup",
+                "ec2:RevokeSecurityGroupEgress",
+                "autoscaling:DescribeAutoScalingGroups",
+                "ec2:DescribeReservedInstances",
+                "ec2:DescribeRouteTables",
+                "autoscaling:DeleteTags",
+                "iam:GetRole",
+                "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
+                "eks:ListNodegroups",
+                "eks:DisassociateIdentityProviderConfig",
+                "ec2:CreateTags",
+                "autoscaling:DescribeTags",
+                "ec2:DescribeFleetInstances",
+                "ec2:ModifySecurityGroupRules",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DescribeScheduledInstances",
+                "ec2:DescribeSecurityGroupRules",
+                "eks:DescribeIdentityProviderConfig",
+                "autoscaling:CreateOrUpdateTags",
+                "eks:AccessKubernetesApi",
+                "ec2:DescribeInstanceTypes",
+                "eks:UpdateNodegroupConfig",
+                "eks:DescribeCluster",
+                "eks:ListClusters",
+                "ec2:DescribeSubnets",
+                "ec2:DeleteTags",
+                "ec2:DescribeInstanceAttribute",
+                "eks:ListAddons",
+                "ec2:DescribeVpcAttribute",
+                "ec2:DescribeAvailabilityZones",
+                "ec2:CreateSecurityGroup",
+                "eks:ListUpdates",
+                "sts:DecodeAuthorizationMessage",
+                "eks:DescribeAddonVersions",
+                "eks:ListIdentityProviderConfigs",
+                "ec2:DescribeInstanceStatus",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "eks:DescribeAddonConfiguration",
+                "eks:UntagResource",
+                "ec2:DescribeTags",
+                "ec2:DescribeNatGateways",
+                "ec2:DescribeSecurityGroups",
+                "eks:ListFargateProfiles",
+                "ec2:DescribeSpotFleetInstances",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeVpcs",
+                "eks:DescribeUpdate",
+                "ec2:DeleteSecurityGroup",
+                "eks:TagResource",
+                "eks:AssociateIdentityProviderConfig",
+                "ec2:DescribeStaleSecurityGroups"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

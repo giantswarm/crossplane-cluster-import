@@ -1,0 +1,15 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::${PARENT_ACCOUNT_ID}:user/${MC_NAME}-capa-controller",
+                    "arn:aws:iam::${AWS_ACCOUNT_ID}:role/crossplane-assume-role"
+                ]
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
