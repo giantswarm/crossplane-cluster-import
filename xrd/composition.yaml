@@ -43,6 +43,7 @@ spec:
         - fromFieldPath: spec.namespace
           toFieldPath: spec.writeConnectionSecretToRef.namespace
 
+    # Specific patches for AWS resources directly implemented by provider-aws-*^
     - name: awsConfig
       patches:
         - fromFieldPath: spec.parameters.region
@@ -50,6 +51,7 @@ spec:
         - fromFieldPath: spec.parameters.awsProviderConfigRef
           toFieldPath: spec.providerConfigRef.name
 
+    # Patches for any resource implemented via provider-kubernetes
     - name: kubernetesConfig
       patches:
         - fromFieldPath: spec.parameters.kubernetesProviderConfigRef
@@ -73,6 +75,9 @@ spec:
 
   resources:
     # Obtain details of the EKS cluster
+    #
+    # This performs a lookup to the EKS resource in AWS and retrieves information
+    # about the cluster, then patches that back for use in other objects
     - name: eks-cluster
       base:
         apiVersion: eks.aws.upbound.io/v1beta1
@@ -82,27 +87,26 @@ spec:
           managementPolicy: ObserveOnly
 
       patches:
-        - fromFieldPath: spec.parameters.region
-          toFieldPath: spec.forProvider.region
-
         # By patching the external-name we instruct crossplane of the
         # ID or name identifier of the remote object
         - fromFieldPath: spec.parameters.clusterName
           toFieldPath: metadata.annotations[crossplane.io/external-name]
+
+        # Apply AWS specific patches
         - type: PatchSet
           patchSetName: awsConfig
 
+        # Apply common metadata
         - type: PatchSet
           patchSetName: metadata
+
+        # The connection config secret must be unique amongst all objects in this set
         - fromFieldPath: spec.parameters.clusterName
           toFieldPath: spec.writeConnectionSecretToRef.name
           transforms:
             - type: string
               string:
                 fmt: "%s-eks-cluster"
-
-        - fromFieldPath: spec.parameters.clusterName
-          toFieldPath: metadata.name
 
         # The following patches are required to take information
         # from this resource and share it amongst other resources
@@ -158,8 +162,6 @@ spec:
         spec:
           managementPolicy: ObserveOnly
       patches:
-        - fromFieldPath: spec.parameters.clusterName
-          toFieldPath: spec.forProvider.clusterName
         - fromFieldPath: spec.parameters.nodeGroupName
           toFieldPath: metadata.annotations[crossplane.io/external-name]
         - type: PatchSet
@@ -175,7 +177,7 @@ spec:
                 fmt: "%s-eks-cluster-ng"
 
         - fromFieldPath: spec.parameters.clusterName
-          toFieldPath: metadata.name
+          toFieldPath: spec.forProvider.clusterName
 
         - type: ToCompositeFieldPath
           fromFieldPath: status.atProvider.amiType
@@ -201,6 +203,13 @@ spec:
           fromFieldPath: status.atProvider.subnetIds
           toFieldPath: status.nodegroup.subnets
         - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.instanceTypes[0]
+          toFieldPath: status.nodegroup.instanceType
+
+        # The AWSManagedControlPlane only takes the Role name and not a full ARN
+        # so here we split on the last `/` character and return just that information
+        # as the name of the role
+        - type: ToCompositeFieldPath
           fromFieldPath: status.atProvider.nodeRoleArn
           toFieldPath: status.nodegroup.role
           transforms:
@@ -210,10 +219,6 @@ spec:
                 regexp:
                   match: '.*\/(.*)'
                   group: 1
-
-        - type: ToCompositeFieldPath
-          fromFieldPath: status.atProvider.instanceTypes[0]
-          toFieldPath: status.nodegroup.instanceType
 
     # Collect information about the VPC the cluster is built in
     #
