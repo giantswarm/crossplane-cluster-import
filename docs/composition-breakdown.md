@@ -92,5 +92,67 @@ For any given resource patching crossplane provides two patching types.
   hands this back to the composition.
 
 To try and give you an idea of how this works, see the following diagram
+summarized from the interactions between two of the composite resouurces, the
+composition, XRD and claim.
 
-![patching](./images/patching.png)
+![Crossplane patching](./images/patching.png)
+
+### Kubernetes patching
+
+When handling kubernetes objects, the patching strategy becomes more complex.
+This is the result of the `provider-kubernetes` Object type allowing additional
+patching that can enforce dependencies between objects and ensure that reference
+types are created before the referencing object is.
+
+For a more thorough breakdown of how this works see the [enhanced provider
+documentation](https://github.com/crossplane-contrib/provider-kubernetes/blob/main/docs/enhanced-provider-k8s.md)
+
+Within this composition, we can see the complexity of this in the 
+AWSManagedMachinePool object which is the last one in the file.
+
+Here, we create a set of references which are dependencies and patches between
+other objects created inside the cluster.
+
+Whilst these do not have to be objects created by Kubernetes, in this instance
+each of them is.
+
+To abbreviate this, we can consider the following yaml:
+
+```yaml
+    - name: awsmanagedmachinepool
+      base:
+        apiVersion: kubernetes.crossplane.io/v1alpha1
+        kind: Object
+        spec:
+          references:
+            - dependsOn:
+                apiVersion: eks.aws.upbound.io/v1beta1
+                kind: NodeGroup
+            - patchesFrom:
+                apiVersion: crossplane.giantswarm.io/v1alpha1
+                kind: CompositeEksImport
+                fieldPath: status.nodegroup.amiType
+              toFieldPath: spec.amiType
+            - patchesFrom:
+                apiVersion: crossplane.giantswarm.io/v1alpha1
+                kind: CompositeEksImport
+                fieldPath: status.nodegroup.capacityType
+              toFieldPath: spec.capacityType
+```
+
+Here, we create a set of references as `apiVersion` and `kind`, where patchesFrom
+also have additional `fromFieldPath` and `toFieldPath`. It's important to note
+the locations of these. `toFieldPath` is at the same level as the `patchesFrom`
+entry. This will be a path on the provider manifest.
+
+The second difference here is that the `toFieldPath` is a reference to a location
+on the final manifest, it is not a location on the `provider-kubernetes::Object`
+type.
+
+These references force the Object to wait before creation to ensure that all
+patched fields can be populated, however this is incomplete.
+
+You will notice from each reference that there is a name missing. As we don't
+know this name until creation, we cannot patch it with kubernetes object 
+references and instead this must be populated by the crossplane patching strategy.
+
