@@ -2,15 +2,15 @@
 
 To better understand what is going on inside the [`composition`](../xrd/composition.yaml)
 file, this document breaks down each component in order to better explain the
-process from an architectural perspective, showing where information is coming 
+process from an architectural perspective, showing where information is coming
 from and going to.
 
 Inside our [`CompositeResourceDefinition`](../xrd/definition.yaml) we define a
-number of fields we require to be populated from the claim, and a number that 
+number of fields we require to be populated from the claim, and a number that
 are to be populated into the status field. As the claim is applied, information
 flows between the composition and the claim as data is applied and retrieved.
 
-To better understand what compositions are, please see the [crossplane 
+To better understand what compositions are, please see the [crossplane
 documentation on this topic](https://docs.crossplane.io/latest/concepts/compositions/)
 
 ## Selectors
@@ -88,7 +88,9 @@ For any given resource patching crossplane provides two patching types.
 - `FromCompositeFieldPath` This is the default when not specified and it used
   to take information from the composition and pass this to the current
   composite resource.
-- `ToCompositeFieldPath` This takes information from the composite resource and 
+- `ToCompositeFieldPath` This takes information from the composite resource and
   hands this back to the composition.
 
+To try and give you an idea of how this works, see the following diagram
 
+![patching](./images/patching.png)
