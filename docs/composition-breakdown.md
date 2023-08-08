@@ -107,7 +107,7 @@ types are created before the referencing object is.
 For a more thorough breakdown of how this works see the [enhanced provider
 documentation](https://github.com/crossplane-contrib/provider-kubernetes/blob/main/docs/enhanced-provider-k8s.md)
 
-Within this composition, we can see the complexity of this in the 
+Within this composition, we can see the complexity of this in the
 AWSManagedMachinePool object which is the last one in the file.
 
 Here, we create a set of references which are dependencies and patches between
@@ -126,7 +126,7 @@ To abbreviate this, we can consider the following yaml:
         spec:
           references:
             - dependsOn:
-                apiVersion: eks.aws.upbound.io/v1beta1
+                apiVersion: eks.aws.upbound.io/v2beta1
                 kind: NodeGroup
             - patchesFrom:
                 apiVersion: crossplane.giantswarm.io/v1alpha1
@@ -153,6 +153,7 @@ These references force the Object to wait before creation to ensure that all
 patched fields can be populated, however this is incomplete.
 
 You will notice from each reference that there is a name missing. As we don't
-know this name until creation, we cannot patch it with kubernetes object 
+know this name until creation, we cannot patch it with kubernetes object
 references and instead this must be populated by the crossplane patching strategy.
 
+![kubernetes-patching](./images/kubernetes-patching.png)
