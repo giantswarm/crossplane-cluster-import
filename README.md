@@ -12,6 +12,10 @@ Observation.
 We're going to focus primarily on the crossplane observation and resource
 creation as these are the only elements that can be controlled.
 
+If you're new to crossplane and wish to get an understanding of how the
+components work together, please see the [composition breakdown](./docs/composition-breakdown.md)
+document.
+
 ## Prerequisites
 
 The EKS cluster must have the tag `kubernetes.io/cluster/CLUSTER_NAME` where
