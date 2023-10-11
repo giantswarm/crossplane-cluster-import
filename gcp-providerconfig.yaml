@@ -1,0 +1,13 @@
+---
+apiVersion: gcp.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: gke-import
+spec:
+  projectID: giantswarm-352614
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane
+      name: crossplane-gke
+      key: creds

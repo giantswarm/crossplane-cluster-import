@@ -1,0 +1,32 @@
+---
+apiVersion: crossplane.giantswarm.io/v1alpha1
+kind: GkeImportClaim
+metadata:
+  name: sample-gke
+  namespace: org-sample
+  labels:
+    owner: honeybadger
+spec:
+  namespace: org-sample
+  labels:
+    provider: gke
+    app.kubernetes.io/instance: gke-import
+    app.kubernetes.io/managed-by: crossplane
+  kubernetesAdditionalLabels:
+    app: cluster-gke
+    app.kubernetes.io/managed-by: crossplane
+    cluster-apps-operator.giantswarm.io/watching: ""
+    cluster.x-k8s.io/watch-filter: capi
+    giantswarm.io/organization: giantswarm
+    giantswarm.io/service-priority: highest
+
+  compositionSelector:
+    matchLabels:
+      provider: gke
+      component: gcp-gke-importer
+  parameters:
+    gcpProviderConfigRef: gke-import
+    kubernetesProviderConfigRef: kubernetes-provider
+    clusterName: sample-gke
+    nodeGroupName: default-pool
+    location: europe-west3

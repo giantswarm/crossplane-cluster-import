@@ -107,7 +107,7 @@ k apply -f providerconfig.yaml
 Finally edit the claim and apply this.
 
 ```bash
-k apply -f claim.yaml
+k apply -f aws-claim.yaml
 ```
 
 ## Claim settings
