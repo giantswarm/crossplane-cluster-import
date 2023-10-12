@@ -13,7 +13,7 @@ spec:
     app.kubernetes.io/instance: eks-import
     app.kubernetes.io/managed-by: crossplane
   kubernetesAdditionalLabels:
-    app: cluster-eks
+    app:  crossplane-capi-import
     app.kubernetes.io/managed-by: crossplane
     cluster-apps-operator.giantswarm.io/watching: ""
     cluster.x-k8s.io/watch-filter: capi
