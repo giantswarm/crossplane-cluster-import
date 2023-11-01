@@ -1,0 +1,128 @@
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: gcp-gke-import
+  labels:
+    provider: gke
+    component: gcp-gke-importer
+    app.kubernetes.io/name: gcp-gke-importer
+    app.kubernetes.io/managed-by: crossplane
+spec:
+  compositeTypeRef:
+    apiVersion: crossplane.giantswarm.io/v1alpha1
+    kind: CompositeImport
+  mode: Pipeline
+  pipeline:
+    - step: collect-cluster
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        metadata:
+          namespace: crossplane
+        patchSets:
+          # This is a generic patchset that gets applied to all resources
+          #
+          # To override specific patches, make sure the overrides are applied
+          # after applying the patchset to a resource
+          - name: metadata
+            patches:
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+
+              - fromFieldPath: metadata.labels
+                toFieldPath: metadata.labels
+                policy:
+                  mergeOptions:
+                    keepMapValues: true
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.labels[app.kubernetes.io/name]
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.labels[app.kubernetes.io/part-of]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-aks-import"
+
+              - fromFieldPath: spec.claimRef.namespace
+                toFieldPath: spec.writeConnectionSecretToRef.namespace
+
+          # Specific patches for AWS resources directly implemented by provider-aws-*^
+          - name: gcpConfig
+            patches:
+              - fromFieldPath: spec.regionOrLocation
+                toFieldPath: spec.forProvider.location
+              - fromFieldPath: spec.cloudProviderConfigRef
+                toFieldPath: spec.providerConfigRef.name
+              - fromFieldPath: spec.deletionPolicy
+                toFieldPath: spec.deletionPolicy
+
+          # Patches for any resource implemented via provider-kubernetes
+          - name: kubernetesConfig
+            patches:
+              - fromFieldPath: spec.clusterProviderConfigRef
+                toFieldPath: spec.providerConfigRef.name
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.metadata.name
+              - fromFieldPath: spec.claimRef.namespace
+                toFieldPath: spec.forProvider.manifest.metadata.namespace
+
+              - fromFieldPath: metadata.labels
+                toFieldPath: spec.forProvider.manifest.metadata.labels
+              - fromFieldPath: spec.kubernetesAdditionalLabels
+                toFieldPath: spec.forProvider.manifest.metadata.labels
+                policy:
+                  mergeOptions:
+                    keepMapValues: true
+
+              - fromFieldPath: metadata.labels.owner
+                toFieldPath: spec.forProvider.manifest.metadata.labels[application.giantswarm.io/team]
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.metadata.labels[cluster.x-k8s.io/cluster-name]
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.metadata.labels[giantswarm.io/cluster]
+              - fromFieldPath: spec.kubeObjectDeletionPolicy
+                toFieldPath: spec.deletionPolicy
+
+        resources:
+          - name: gke-cluster
+            base:
+              apiVersion: container.gcp.upbound.io/v1beta1
+              kind: Cluster
+              spec:
+                managementPolicies:
+                  - Observe
+            patches:
+              # By patching the external-name we instruct crossplane of the
+              # ID or name identifier of the remote object
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.annotations[crossplane.io/external-name]
+
+              # Apply Azure specific patches
+              - type: PatchSet
+                patchSetName: gcpConfig
+
+              # Apply common metadata
+              - type: PatchSet
+                patchSetName: metadata
+
+              # Set the resource group
+              - fromFieldPath: spec.resourceGroupName
+                toFieldPath: spec.forProvider.resourceGroupName
+
+              # The connection config secret must be unique amongst all objects in this set
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-gke-cluster"
+
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider
+                toFieldPath: status.gcp.cluster

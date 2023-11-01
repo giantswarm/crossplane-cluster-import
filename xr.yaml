@@ -1,0 +1,19 @@
+apiVersion: crossplane.giantswarm.io/v1alpha1
+kind: CompositeImport
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"crossplane.giantswarm.io/v1alpha1","kind":"EksImportClaim","metadata":{"annotations":{},"labels":{"owner":"honeybadger"},"name":"example","namespace":"default"},"spec":{"compositionSelector":{"matchLabels":{"component":"aws-eks-importer","provider":"aws"}},"compositionUpdatePolicy":"Manual","kubernetesAdditionalLabels":{"app":"cluster-eks","app.kubernetes.io/managed-by":"crossplane","cluster-apps-operator.giantswarm.io/watching":"","cluster.x-k8s.io/watch-filter":"capi","giantswarm.io/organization":"giantswarm","giantswarm.io/service-priority":"highest"},"labels":{"app.kubernetes.io/instance":"eks-import","app.kubernetes.io/managed-by":"crossplane","provider":"aws"},"namespace":"default","parameters":{"awsProviderConfigRef":"aws","clusterName":"example","kubernetesProviderConfigRef":"kubernetes-provider","nodeGroupName":"ng-1","region":"eu-central-1"}}}
+  creationTimestamp: "2023-09-30T10:20:04Z"
+  finalizers:
+  - composite.apiextensions.crossplane.io
+  generateName: example-
+  generation: 4
+  labels:
+    crossplane.io/claim-name: example
+    crossplane.io/claim-namespace: default
+    crossplane.io/composite: example-jhmp4
+    owner: honeybadger
+  name: example-jhmp4
+  resourceVersion: "1718"
+  uid: f3e4fa75-e761-4d54-b74e-ad18cd415761

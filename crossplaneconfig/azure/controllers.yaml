@@ -1,0 +1,172 @@
+---
+# Create the service account to be used for AWS providers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: upbound-provider-azure-importer
+  labels:
+    app: azure-importer
+  namespace: crossplane
+  annotations: {}
+
+---
+# Create the service account to be used by crossplane providers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crossplane-provider-kubernetes
+  namespace: crossplane
+
+---
+# DeploymentRuntimeConfig for AWS resources
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: azure-importer
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          serviceAccountName: upbound-provider-azure-importer
+          containers:
+            - name: package-runtime
+              args:
+                - --debug
+                - --enable-management-policies
+  serviceAccountTemplate:
+    metadata:
+      name: upbound-provider-azure-importer
+
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: kubernetes-importer
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          serviceAccountName: crossplane-provider-kubernetes
+          containers:
+            - name: package-runtime
+              args:
+                - --debug
+  serviceAccountTemplate:
+    metadata:
+      name: crossplane-provider-kubernetes
+
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: azure-importer-functions
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        spec:
+          serviceAccountName: upbound-provider-azure-importer
+          containers:
+            - name: package-runtime
+              args:
+                - --debug
+  serviceAccountTemplate:
+    metadata:
+      name: upbound-provider-azure-importer
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-family-azure
+  namespace: crossplane
+spec:
+  ignoreCrossplaneConstraints: false
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 0
+  skipDependencyResolution: false
+  package: xpkg.upbound.io/upbound/provider-family-azure:v0.38.0
+  runtimeConfigRef:
+    name: azure-importer
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-azure-containerservice
+  namespace: crossplane
+spec:
+  ignoreCrossplaneConstraints: false
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 0
+  skipDependencyResolution: false
+  package: xpkg.upbound.io/upbound/provider-azure-containerservice:v0.38.0
+  runtimeConfigRef:
+    name: azure-importer
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: crossplane-contrib-provider-kubernetes
+  namespace: crossplane
+spec:
+  ignoreCrossplaneConstraints: false
+  package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.9.0
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 0
+  skipDependencyResolution: false
+  runtimeConfigRef:
+    name: kubernetes-importer
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: crossplane-kubernetes-cluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: crossplane-provider-kubernetes
+    namespace: crossplane
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: azure-importer
+  name: xfn-azure-provider-config-access
+rules:
+  - apiGroups:
+      - azure.upbound.io
+    resources:
+      - providerconfigs
+    verbs:
+      - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: xfn-azure-provider-config-access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: xfn-azure-provider-config-access
+subjects:
+  - kind: ServiceAccount
+    name: upbound-provider-azure-importer
+    namespace: crossplane

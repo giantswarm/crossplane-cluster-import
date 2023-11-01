@@ -1,0 +1,521 @@
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: aws-eks-import
+  labels:
+    provider: aws
+    component: aws-eks-import
+    app.kubernetes.io/name: aws-eks-import
+    app.kubernetes.io/managed-by: crossplane
+spec:
+  compositeTypeRef:
+    apiVersion: crossplane.giantswarm.io/v1alpha1
+    kind: CompositeImport
+  mode: Pipeline
+  pipeline:
+    - step: collect-cluster
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        metadata:
+          namespace: crossplane
+        patchSets:
+          # This is a generic patchset that gets applied to all resources
+          #
+          # To override specific patches, make sure the overrides are applied
+          # after applying the patchset to a resource
+          - name: metadata
+            patches:
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+              - fromFieldPath: metadata.annotations[crossplane.io/claim-namespace]
+                toFieldPath: metadata.namespace
+              - fromFieldPath: metadata.labels
+                toFieldPath: metadata.labels
+                policy:
+                  mergeOptions:
+                    keepMapValues: true
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.labels[app.kubernetes.io/name]
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.labels[app.kubernetes.io/part-of]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-import"
+
+              - fromFieldPath: spec.claimRef.namespace
+                toFieldPath: spec.writeConnectionSecretToRef.namespace
+
+          # Specific patches for AWS resources directly implemented by provider-aws-*^
+          - name: awsConfig
+            patches:
+              - fromFieldPath: spec.regionOrLocation
+                toFieldPath: spec.forProvider.region
+              - fromFieldPath: spec.cloudProviderConfigRef
+                toFieldPath: spec.providerConfigRef.name
+              - fromFieldPath: spec.deletionPolicy
+                toFieldPath: spec.deletionPolicy
+
+          # Patches for any resource implemented via provider-kubernetes
+          - name: kubernetesConfig
+            patches:
+              - fromFieldPath: spec.clusterProviderConfigRef
+                toFieldPath: spec.providerConfigRef.name
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.metadata.name
+              - fromFieldPath: spec.claimRef.namespace
+                toFieldPath: spec.forProvider.manifest.metadata.namespace
+
+              - fromFieldPath: metadata.labels
+                toFieldPath: spec.forProvider.manifest.metadata.labels
+              - fromFieldPath: spec.kubernetesAdditionalLabels
+                toFieldPath: spec.forProvider.manifest.metadata.labels
+                policy:
+                  mergeOptions:
+                    keepMapValues: true
+
+              - fromFieldPath: metadata.labels.owner
+                toFieldPath: spec.forProvider.manifest.metadata.labels[application.giantswarm.io/team]
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.metadata.labels[cluster.x-k8s.io/cluster-name]
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.metadata.labels[giantswarm.io/cluster]
+              - fromFieldPath: spec.objectDeletionPolicy
+                toFieldPath: spec.deletionPolicy
+
+        resources:
+          - name: eks-cluster
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta1
+              kind: Cluster
+              spec:
+                managementPolicies:
+                  - Observe
+            patches:
+              # By patching the external-name we instruct crossplane of the
+              # ID or name identifier of the remote object
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.annotations[crossplane.io/external-name]
+
+              # Apply AWS specific patches
+              - type: PatchSet
+                patchSetName: awsConfig
+
+              # Apply common metadata
+              - type: PatchSet
+                patchSetName: metadata
+
+              # The connection config secret must be unique amongst all objects in this set
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-cluster"
+
+              - type: ToCompositeFieldPath
+                toFieldPath: status.aws.cluster
+                fromFieldPath: status.atProvider
+
+          # Collect information about the VPC the cluster is built in
+          #
+          # This is a little more dynamic as we patch from the cluster.atProvider.vpcId
+          - name: eks-cluster-vpc
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: VPC
+              spec:
+                managementPolicies:
+                  - Observe
+            patches:
+              - fromFieldPath: status.aws.cluster.vpcConfig[0].vpcId
+                toFieldPath: metadata.annotations[crossplane.io/external-name]
+
+              - type: PatchSet
+                patchSetName: awsConfig
+              - type: PatchSet
+                patchSetName: metadata
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-cluster-vpc"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+
+              - type: ToCompositeFieldPath
+                toFieldPath: status.aws.vpc
+                fromFieldPath: status.atProvider
+
+          # Information about authenticating to the cluster can be retrieved
+          # directly into the secret identified by `writeConnectionSecretToRef`
+          - name: eks-cluster-auth
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta1
+              kind: ClusterAuth
+            patches:
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.clusterName
+              - type: PatchSet
+                patchSetName: awsConfig
+              - type: PatchSet
+                patchSetName: metadata
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-kubeconfig-cluster-auth"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-cluster-auth"
+
+          # -----------------------------------------------------------------------------------------------------------------
+          # KUBERNETES CLUSTER API RESOURCES
+          # -----------------------------------------------------------------------------------------------------------------
+          
+          # Create the Cluster CR
+          - name: clusterCr
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                references:
+                  - dependsOn:
+                      apiVersion: eks.aws.upbound.io/v1beta1
+                      kind: Cluster
+
+                forProvider:
+                  manifest:
+                    apiVersion: cluster.x-k8s.io/v1beta1
+                    kind: Cluster
+                    metadata:
+                      annotations:
+                        cluster.x-k8s.io/managed-by: "crossplane"
+                      labels: {}
+                    spec:
+                      clusterNetwork:
+                        pods:
+                          cidrBlocks: []
+                        services:
+                          cidrBlocks: []
+                      controlPlaneEndpoint:
+                        port: 443
+                      controlPlaneRef:
+                        apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+                        kind: AWSManagedControlPlane
+                      infrastructureRef:
+                        apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+                        kind: AWSManagedCluster
+
+                    status:
+                      phase: "Provisioned"
+                      controlPlaneReady: true
+                      infrastructureReady: true
+
+            patches:
+              - type: PatchSet
+                patchSetName: metadata
+              - type: PatchSet
+                patchSetName: kubernetesConfig
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-cluster"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-cluster"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.spec.controlPlaneRef.name
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.spec.infrastructureRef.name
+
+              - fromFieldPath: status.aws.cluster.endpoint
+                toFieldPath: spec.forProvider.manifest.spec.controlPlaneEndpoint.host
+
+              - fromFieldPath: status.aws.cluster.kubernetesNetworkConfig[0].serviceIpv4Cidr
+                toFieldPath: spec.forProvider.manifest.spec.clusterNetwork.services.cidrBlocks[0]
+              - fromFieldPath: status.aws.vppc.cidrBlock
+                toFieldPath: spec.forProvider.manifest.spec.clusterNetwork.pods.cidrBlocks[0]
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.references[0].dependsOn.name
+
+          # ----------------------------------------------------------------------------------------------------------------
+          # Cluster API for AWS Resources
+          # ----------------------------------------------------------------------------------------------------------------
+
+          # Create the AWSClusterRoleIdentity CR
+          - name: awsclusterroleidentity
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                forProvider:
+                  manifest:
+                    apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+                    kind: AWSClusterRoleIdentity
+                    metadata:
+                      name: crossplane-eks
+                    spec:
+                      allowedNamespaces:
+                        list: null
+                        selector: {}
+                      sourceIdentityRef:
+                        kind: AWSClusterControllerIdentity
+                        name: default
+                references:
+                  # Force a dependency on the AWS Cluster
+                  # This will ensure we wait until the nodegroup is
+                  # ready before attempting to create this object.
+                  - dependsOn:
+                      apiVersion: eks.aws.upbound.io/v1beta1
+                      kind: Cluster
+
+                  - patchesFrom:
+                      apiVersion: aws.upbound.io/v1beta1
+                      kind: ProviderConfig
+                      fieldPath: spec.assumeRoleChain[0].roleARN
+                    toFieldPath: spec.roleARN
+
+            patches:
+              - type: PatchSet
+                patchSetName: metadata
+              - type: PatchSet
+                patchSetName: kubernetesConfig
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-awsclusterroleidentity"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-awsclusterroleidentity"
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.references[0].dependsOn.name
+              - fromFieldPath: spec.cloudProviderConfigRef
+                toFieldPath: spec.references[1].patchesFrom.name
+
+          # Create the AWS Managed Cluster CR
+          - name: awsmanagedcluster
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                references:
+                  # Force a dependency on the AWS Cluster
+                  # This will ensure we wait until the nodegroup is
+                  # ready before attempting to create this object.
+                  - dependsOn:
+                      apiVersion: eks.aws.upbound.io/v1beta1
+                      kind: Cluster
+
+                forProvider:
+                  manifest:
+                    apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+                    kind: AWSManagedCluster
+                    metadata:
+                      annotations:
+                        cluster.x-k8s.io/managed-by: "crossplane"
+                      labels: {}
+                    spec:
+                      controlPlaneEndpoint:
+                        host: ""
+                        port: 443
+                    status:
+                      ready: true
+            patches:
+              - type: PatchSet
+                patchSetName: metadata
+              - type: PatchSet
+                patchSetName: kubernetesConfig
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-awsmanagedcluster"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-awsmanagedcluster"
+
+              - fromFieldPath: status.endpoint
+                toFieldPath: spec.forProvider.manifest.spec.controlPlaneEndpoint.host
+                transforms:
+                  - type: string
+                    string:
+                      type: TrimPrefix
+                      trim: 'https://'
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.references[0].dependsOn.name
+
+          # Create the AWSManagedControlPlane object
+          - name: awsmanagedcontrolplane
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                references:
+                  # Force a dependency on the AWS VPC
+                  # This will ensure we wait until the nodegroup is
+                  # ready before attempting to create this object.
+                  - dependsOn:
+                      apiVersion: ec2.aws.upbound.io/v1beta1
+                      kind: VPC
+                  - patchesFrom:
+                      apiVersion: crossplane.giantswarm.io/v1alpha1
+                      kind: CompositeImport 
+                      fieldPath: status.subnets
+                    toFieldPath: spec.network.subnets
+                  - patchesFrom:
+                      apiVersion: crossplane.giantswarm.io/v1alpha1
+                      kind: CompositeImport
+                      fieldPath: status.aws.cluster.vpcConfig[0].vpcId
+                    toFieldPath: spec.network.vpc.id
+
+                forProvider:
+                  manifest:
+                    apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+                    kind: AWSManagedControlPlane
+                    metadata:
+                      annotations:
+                        cluster.x-k8s.io/managed-by: "crossplane"
+                      labels: {}
+                    spec:
+                      eksClusterName: ""
+                      controlPlaneEndpoint:
+                        host: ""
+                        port: 443
+                      network:
+                        vpc: {}
+                        subnets: []
+                        securityGroupOverrides: {}
+                      identityRef:
+                        kind: AWSClusterRoleIdentity
+                    status:
+                      ready: true
+            patches:
+              - type: PatchSet
+                patchSetName: metadata
+              - type: PatchSet
+                patchSetName: kubernetesConfig
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-awsmanagedcontrolplane"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-awsmanagedcontrolplane"
+
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.spec.eksClusterName
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.manifest.spec.identityRef.name
+
+              - fromFieldPath: spec.regionOrLocation
+                toFieldPath: spec.forProvider.manifest.spec.region
+
+              - fromFieldPath: status.endpoint
+                toFieldPath: spec.forProvider.manifest.spec.controlPlaneEndpoint.host
+                transforms:
+                  - type: string
+                    string:
+                      type: TrimPrefix
+                      trim: 'https://'
+
+              - fromFieldPath: status.aws.cluster.vpcConfig[0].securityGroupIds[0]
+                toFieldPath: spec.forProvider.manifest.spec.network.securityGroupOverrides.controlplane
+              - fromFieldPath: status.aws.cluster.vpcConfig[0].clusterSecurityGroupId
+                toFieldPath: spec.forProvider.manifest.spec.network.securityGroupOverrides.node
+              - fromFieldPath: status.aws.cluster.version
+                toFieldPath: spec.forProvider.manifest.spec.version
+              - fromFieldPath: status.aws.cluster.roleArn
+                toFieldPath: spec.forProvider.manifest.spec.roleName
+                transforms:
+                  - type: string
+                    string:
+                      type: Regexp
+                      regexp:
+                        match: '.*\/(.*)'
+                        group: 1
+              - fromFieldPath: spec.clusterName
+                toFieldPath: spec.references[0].dependsOn.name
+              - fromFieldPath: metadata.labels[crossplane.io/composite]
+                toFieldPath: spec.references[1].patchesFrom.name
+              - fromFieldPath: metadata.labels[crossplane.io/composite]
+                toFieldPath: spec.references[2].patchesFrom.name
+
+    # Function step : Generate Subnets `giantswarm/function-generate-subnets
+    - step: generate-subnets
+      functionRef:
+        name: function-generate-subnets
+      input:
+        apiVersion: generator.fn.giantswarm.io
+        kind: Subnet
+        metadata:
+          namespace: crossplane
+        spec:
+          clusterRef: eks-cluster
+          patchTo: status.subnets
+    # Describe nodegroups
+    - step: describe-nodegroups
+      functionRef:
+        name: function-describe-nodegroups
+      input:
+        apiVersion: describenodegroups.fn.giantswarm.io
+        kind: Nodegroups
+        metadata:
+          namespace: crossplane
+        spec:
+          clusterRef: eks-cluster

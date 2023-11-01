@@ -1,6 +1,6 @@
 ---
 apiVersion: crossplane.giantswarm.io/v1alpha1
-kind: GkeImportClaim
+kind: ImportClaim
 metadata:
   name: sample-gke
   namespace: org-sample
@@ -22,11 +22,10 @@ spec:
 
   compositionSelector:
     matchLabels:
-      provider: gke
+      provider: gcp
       component: gcp-gke-importer
   parameters:
-    gcpProviderConfigRef: gke-import
-    kubernetesProviderConfigRef: kubernetes-provider
+    cloudProviderConfigRef: gke-import
+    clusterProviderConfigRef: kubernetes-provider
     clusterName: sample-gke
-    nodeGroupName: default-pool
-    location: europe-west3
+    regionOrLocation: europe-west3

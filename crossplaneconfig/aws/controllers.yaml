@@ -1,0 +1,191 @@
+---
+# Create the service account to be used for AWS providers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: upbound-provider-aws-importer
+  namespace: crossplane
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/crossplane-assume-role
+
+---
+# Create the service account to be used by crossplane providers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crossplane-provider-kubernetes
+  namespace: crossplane
+  annotations: {}
+
+---
+# DeploymentRuntimeConfig for AWS resources
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: aws-importer
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          serviceAccountName: upbound-provider-aws-importer
+          containers:
+            - name: package-runtime
+              args:
+                - --debug
+                #- --enable-management-policies
+  serviceAccountTemplate:
+    metadata:
+      name: upbound-provider-aws-importer
+
+---
+# DeploymentRuntimeConfig for composition functions
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: aws-importer-functions
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        spec:
+          serviceAccountName: upbound-provider-aws-importer
+          containers:
+          - name: package-runtime
+            args:
+            - --debug
+            imagePullPolicy: Always
+  serviceAccountTemplate:
+    metadata:
+      name: upbound-provider-aws-importer
+
+---
+# DeploymentRuntimeConfig for the kubernetes provider
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: kubernetes-importer
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          serviceAccountName: crossplane-provider-kubernetes
+          containers:
+            - name: package-runtime
+              args:
+                - --debug
+  serviceAccountTemplate:
+    metadata:
+      name: crossplane-provider-kubernetes
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-family-aws
+  namespace: crossplane
+spec:
+  ignoreCrossplaneConstraints: false
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 0
+  skipDependencyResolution: false
+  package: xpkg.upbound.io/upbound/provider-family-aws:v0.43.0
+  runtimeConfigRef:
+    name: aws-importer
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-aws-ec2
+  namespace: crossplane
+spec:
+  ignoreCrossplaneConstraints: false
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 0
+  skipDependencyResolution: false
+  package: xpkg.upbound.io/upbound/provider-aws-ec2:v0.43.0
+  runtimeConfigRef:
+    name: aws-importer
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-aws-eks
+  namespace: crossplane
+spec:
+  ignoreCrossplaneConstraints: false
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 0
+  skipDependencyResolution: false
+  package: xpkg.upbound.io/upbound/provider-aws-eks:v0.43.0
+  runtimeConfigRef:
+    name: aws-importer
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: crossplane-contrib-provider-kubernetes
+  namespace: crossplane
+spec:
+  ignoreCrossplaneConstraints: false
+  package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.9.0
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 0
+  skipDependencyResolution: false
+  runtimeConfigRef:
+    name: kubernetes-importer
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: crossplane-kubernetes-cluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: crossplane-provider-kubernetes
+    namespace: crossplane
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: aws-importer
+  name: xfn-aws-provider-config-access
+rules:
+  - apiGroups:
+      - aws.upbound.io
+    resources:
+      - providerconfigs
+    verbs:
+      - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: xfn-aws-provider-config-access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: xfn-aws-provider-config-access
+subjects:
+  - kind: ServiceAccount
+    name: upbound-provider-aws-importer
+    namespace: crossplane

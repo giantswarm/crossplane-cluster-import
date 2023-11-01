@@ -1,0 +1,233 @@
+---
+apiVersion: container.gcp.upbound.io/v1beta1
+kind: Cluster
+metadata:
+  annotations:
+    crossplane.io/composition-resource-name: gke-cluster
+    crossplane.io/external-name: example
+  creationTimestamp: "2023-09-25T07:58:10Z"
+  generateName: example-mwxgt-
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: gke-import
+    app.kubernetes.io/managed-by: crossplane
+    app.kubernetes.io/name: example
+    app.kubernetes.io/part-of: example-gke-import
+    crossplane.io/claim-name: example
+    crossplane.io/claim-namespace: org-sample
+    crossplane.io/composite: example-mwxgt
+    provider: gcp
+  name: example
+  ownerReferences:
+  - apiVersion: crossplane.giantswarm.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: CompositeImport
+    name: example-mwxgt
+    uid: 113355f3-1d22-4898-ac18-84204b18c45d
+  resourceVersion: "195942888"
+  uid: 96e97e51-a713-42c9-9fdd-0307fbc29ad4
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    location: europe-west3
+  managementPolicy: ObserveOnly
+  providerConfigRef:
+    name: gke-import
+  writeConnectionSecretToRef:
+    name: example-gke-cluster
+    namespace: org-sample
+status:
+  atProvider:
+    addonsConfig:
+    - dnsCacheConfig:
+      - enabled: false
+      gcePersistentDiskCsiDriverConfig:
+      - enabled: true
+      horizontalPodAutoscaling:
+      - disabled: false
+      httpLoadBalancing:
+      - disabled: false
+      networkPolicyConfig:
+      - disabled: true
+    authenticatorGroupsConfig:
+    - securityGroup: ""
+    binaryAuthorization:
+    - enabled: false
+      evaluationMode: DISABLED
+    clusterAutoscaling:
+    - enabled: false
+    clusterIpv4Cidr: 10.56.0.0/14
+    databaseEncryption:
+    - keyName: ""
+      state: DECRYPTED
+    datapathProvider: LEGACY_DATAPATH
+    defaultMaxPodsPerNode: 110
+    defaultSnatStatus:
+    - disabled: false
+    description: ""
+    enableAutopilot: false
+    enableBinaryAuthorization: false
+    enableIntranodeVisibility: false
+    enableKubernetesAlpha: false
+    enableL4IlbSubsetting: false
+    enableLegacyAbac: false
+    enableShieldedNodes: true
+    enableTpu: false
+    endpoint: 35.246.191.1
+    id: projects/giantswarm-111111/locations/europe-west3/clusters/example
+    initialNodeCount: 0
+    ipAllocationPolicy:
+    - clusterIpv4CidrBlock: 10.56.0.0/14
+      clusterSecondaryRangeName: gke-example-pods-adffb846
+      podCidrOverprovisionConfig:
+      - disabled: false
+      servicesIpv4CidrBlock: 10.60.0.0/20
+      servicesSecondaryRangeName: gke-example-services-adffb846
+      stackType: IPV4
+    labelFingerprint: a9dc16a7
+    location: europe-west3
+    loggingConfig:
+    - enableComponents:
+      - SYSTEM_COMPONENTS
+      - WORKLOADS
+    loggingService: logging.googleapis.com/kubernetes
+    masterAuth:
+    - clientCertificate: ""
+      clientCertificateConfig:
+      - issueClientCertificate: false
+      clusterCaCertificate: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    masterVersion: 1.27.3-gke.100
+    monitoringConfig:
+    - enableComponents:
+      - SYSTEM_COMPONENTS
+      managedPrometheus:
+      - enabled: true
+    monitoringService: monitoring.googleapis.com/kubernetes
+    network: projects/giantswarm-111111/global/networks/default
+    networkPolicy:
+    - enabled: false
+      provider: PROVIDER_UNSPECIFIED
+    networkingMode: VPC_NATIVE
+    nodeConfig:
+    - bootDiskKmsKey: ""
+      diskSizeGb: 100
+      diskType: pd-balanced
+      imageType: COS_CONTAINERD
+      localSsdCount: 0
+      loggingVariant: DEFAULT
+      machineType: e2-medium
+      metadata:
+        disable-legacy-endpoints: "true"
+      minCpuPlatform: ""
+      nodeGroup: ""
+      oauthScopes:
+      - https://www.googleapis.com/auth/devstorage.read_only
+      - https://www.googleapis.com/auth/logging.write
+      - https://www.googleapis.com/auth/monitoring
+      - https://www.googleapis.com/auth/service.management.readonly
+      - https://www.googleapis.com/auth/servicecontrol
+      - https://www.googleapis.com/auth/trace.append
+      preemptible: false
+      serviceAccount: default
+      shieldedInstanceConfig:
+      - enableIntegrityMonitoring: true
+        enableSecureBoot: false
+      spot: false
+    nodeLocations:
+    - europe-west3-a
+    - europe-west3-b
+    - europe-west3-c
+    nodePool:
+    - initialNodeCount: 1
+      instanceGroupUrls:
+      - https://www.googleapis.com/compute/v1/projects/giantswarm-111111/zones/europe-west3-b/instanceGroupManagers/gke-example-default-pool-60a7f9a4-grp
+      - https://www.googleapis.com/compute/v1/projects/giantswarm-111111/zones/europe-west3-c/instanceGroupManagers/gke-example-default-pool-396519fc-grp
+      - https://www.googleapis.com/compute/v1/projects/giantswarm-111111/zones/europe-west3-a/instanceGroupManagers/gke-example-default-pool-d66d7d38-grp
+      managedInstanceGroupUrls:
+      - https://www.googleapis.com/compute/v1/projects/giantswarm-111111/zones/europe-west3-b/instanceGroups/gke-example-default-pool-60a7f9a4-grp
+      - https://www.googleapis.com/compute/v1/projects/giantswarm-111111/zones/europe-west3-c/instanceGroups/gke-example-default-pool-396519fc-grp
+      - https://www.googleapis.com/compute/v1/projects/giantswarm-111111/zones/europe-west3-a/instanceGroups/gke-example-default-pool-d66d7d38-grp
+      management:
+      - autoRepair: true
+        autoUpgrade: true
+      maxPodsPerNode: 110
+      name: default-pool
+      namePrefix: ""
+      networkConfig:
+      - createPodRange: false
+        enablePrivateNodes: false
+        podIpv4CidrBlock: 10.56.0.0/14
+        podRange: gke-example-pods-adffb846
+      nodeConfig:
+      - bootDiskKmsKey: ""
+        diskSizeGb: 100
+        diskType: pd-balanced
+        imageType: COS_CONTAINERD
+        localSsdCount: 0
+        loggingVariant: DEFAULT
+        machineType: e2-medium
+        metadata:
+          disable-legacy-endpoints: "true"
+        minCpuPlatform: ""
+        nodeGroup: ""
+        oauthScopes:
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring
+        - https://www.googleapis.com/auth/service.management.readonly
+        - https://www.googleapis.com/auth/servicecontrol
+        - https://www.googleapis.com/auth/trace.append
+        preemptible: false
+        serviceAccount: default
+        shieldedInstanceConfig:
+        - enableIntegrityMonitoring: true
+          enableSecureBoot: false
+        spot: false
+      nodeCount: 1
+      nodeLocations:
+      - europe-west3-a
+      - europe-west3-b
+      - europe-west3-c
+      upgradeSettings:
+      - maxSurge: 1
+        maxUnavailable: 0
+        strategy: SURGE
+      version: 1.27.3-gke.100
+    nodePoolDefaults:
+    - nodeConfigDefaults:
+      - loggingVariant: DEFAULT
+    nodeVersion: 1.27.3-gke.100
+    notificationConfig:
+    - pubsub:
+      - enabled: false
+        topic: ""
+    privateClusterConfig:
+    - enablePrivateEndpoint: false
+      enablePrivateNodes: false
+      masterGlobalAccessConfig:
+      - enabled: false
+      masterIpv4CidrBlock: ""
+      peeringName: ""
+      privateEndpoint: 10.156.0.6
+      privateEndpointSubnetwork: ""
+      publicEndpoint: 35.246.191.1
+    privateIpv6GoogleAccess: ""
+    project: giantswarm-111111
+    releaseChannel:
+    - channel: REGULAR
+    selfLink: https://container.googleapis.com/v1/projects/giantswarm-111111/locations/europe-west3/clusters/example
+    serviceExternalIpsConfig:
+    - enabled: false
+    servicesIpv4Cidr: 10.60.0.0/20
+    subnetwork: projects/giantswarm-111111/regions/europe-west3/subnetworks/default
+    tpuIpv4CidrBlock: ""
+  conditions:
+  - lastTransitionTime: "2023-09-27T11:48:37Z"
+    reason: ReconcileSuccess
+    status: "True"
+    type: Synced
+  - lastTransitionTime: "2023-09-25T08:03:20Z"
+    reason: Available
+    status: "True"
+    type: Ready

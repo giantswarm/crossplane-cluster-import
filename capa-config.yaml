@@ -1,0 +1,25 @@
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: AWSClusterControllerIdentity
+metadata:
+  name: default
+spec:
+  allowedNamespaces:
+    list: null
+    selector: {}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: AWSClusterRoleIdentity
+metadata:
+  labels:
+    cluster.x-k8s.io/watch-filter: capi
+    giantswarm.io/organization: giantswarm
+  name: default
+spec:
+  allowedNamespaces:
+    list: null
+    selector: {}
+  roleARN: arn:aws:iam::${AWS_ACCOUNT_ID}:role/giantswarm-${MC_NAME}-capa-controller
+  sourceIdentityRef:
+    kind: AWSClusterControllerIdentity
+    name: default

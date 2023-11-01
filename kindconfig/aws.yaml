@@ -1,0 +1,28 @@
+---
+# Kind configuration for a CAPA + Crossplane kind cluster
+#
+# This configuration should be given to `kind` when starting a cluster.
+# It assumes that there are valid SA certificates for configuring OpenID
+# stored in the local path `/etc/kubernetes/aws`
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraMounts:
+    - hostPath: /etc/kubernetes/aws
+      containerPath: /etc/aws
+      readOnly: true
+    kubeadmConfigPatches:
+    - |
+      kind: ClusterConfiguration
+      apiServer:
+        extraArgs:
+          "api-audiences": "sts.amazonaws.com"
+          "service-account-issuer": "https://${AWS_OIDC_ENDPOINT}"
+          "service-account-key-file": "/etc/aws/sa.pub"
+          "service-account-signing-key-file": "/etc/aws/sa.key"
+        extraVolumes:
+          - name: snailoidc
+            hostPath: /etc/aws
+            mountPath: /etc/aws
+            readOnly: true

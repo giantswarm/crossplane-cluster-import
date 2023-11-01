@@ -1,0 +1,30 @@
+---
+apiVersion: crossplane.giantswarm.io/v1alpha1
+kind: ImportClaim
+metadata:
+  name: aks-import
+  namespace: org-sample
+  labels:
+    owner: honeybadger
+    provider: azure
+    app.kubernetes.io/instance: aks-import
+    app.kubernetes.io/managed-by: crossplane
+spec:
+  clusterName: aks-import
+  resourceGroupName: aks-import
+  regionOrLocation: germanywestcentral
+  cloudProviderConfigRef: aks-import
+  clusterProviderConfigRef: kubernetes-provider
+  kubernetesAdditionalLabels:
+    app: cluster-aks
+    app.kubernetes.io/managed-by: crossplane
+    cluster-apps-operator.giantswarm.io/watching: ""
+    cluster.x-k8s.io/watch-filter: capi
+    giantswarm.io/organization: giantswarm
+    giantswarm.io/service-priority: highest
+
+  compositionUpdatePolicy: Manual
+  compositionSelector:
+    matchLabels:
+      provider: azure
+      component: azure-aks-import
