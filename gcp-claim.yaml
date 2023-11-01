@@ -9,7 +9,7 @@ metadata:
 spec:
   namespace: org-sample
   labels:
-    provider: gke
+    provider: gcp
     app.kubernetes.io/instance: gke-import
     app.kubernetes.io/managed-by: crossplane
   kubernetesAdditionalLabels:

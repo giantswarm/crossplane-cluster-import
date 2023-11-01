@@ -14,6 +14,7 @@ metadata:
     crossplane.io/claim-namespace: default
     crossplane.io/composite: example-jhmp4
     owner: honeybadger
+    provider: aws
   name: example-jhmp4
   resourceVersion: "1718"
   uid: f3e4fa75-e761-4d54-b74e-ad18cd415761

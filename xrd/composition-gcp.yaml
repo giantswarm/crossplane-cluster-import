@@ -4,7 +4,7 @@ kind: Composition
 metadata:
   name: gcp-gke-import
   labels:
-    provider: gke
+    provider: gcp
     component: gcp-gke-importer
     app.kubernetes.io/name: gcp-gke-importer
     app.kubernetes.io/managed-by: crossplane
