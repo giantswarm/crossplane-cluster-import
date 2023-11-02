@@ -44,7 +44,7 @@ eval $(awk -v mc=$AWS_PROFILE '$0 ~ mc{x=NR+1; next; }(NR<=x){print "export AWS_
 kind delete cluster -n "${KIND_CLUSTER_NAME}"
 
 # Create a new kind cluster using the aws config
-cat kindconfig/aws.yaml | envsubst > /tmp/kind-${KIND_CLUSTER_NAME}.yaml
+cat kind/aws.yaml | envsubst > /tmp/kind-${KIND_CLUSTER_NAME}.yaml
 echo "Building kind cluster with config:"
 cat /tmp/kind-${KIND_CLUSTER_NAME}.yaml
 
@@ -143,14 +143,14 @@ kubectl create secret generic aws-credentials -n crossplane --from-literal=creds
   base64 -d <<< ${AWS_B64ENCODED_CREDENTIALS}
 )"
 
-cat ./crossplaneconfig/aws/controllers.yaml | envsubst | kubectl apply -f -
+cat ./crossplane/config/aws/controllers.yaml | envsubst | kubectl apply -f -
 wait_for_crds 'providerconfigs.aws.upbound.io' 'providerconfigs.kubernetes.crossplane.io'
 
-cat ./crossplaneconfig/aws/providerconfig.yaml | envsubst | kubectl apply -f -
-kubectl apply -f ./crossplaneconfig/aws/functions.yaml
+cat ./crossplane/config/aws/providerconfig.yaml | envsubst | kubectl apply -f -
+kubectl apply -f ./crossplane/config/aws/functions.yaml
 wait_for_functions function-generate-subnets function-describe-nodegroups function-patch-and-transform
 
-kubectl apply -f xrd/definition.yaml
-kubectl apply -f "xrd/composition-*"
+kubectl apply -f crossplane/composition/definition.yaml
 wait_for_crds importclaims.crossplane.giantswarm.io
-kubectl apply -f aws-claim.yaml
+kubectl apply -f "crossplane/composition/composition-*"
+kubectl apply -f crossplane/claims/aws-claim.yaml

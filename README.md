@@ -2,7 +2,7 @@
 
 ![Crossplane to ClusterAPI relationships](./docs/images/crossplane-capi-relationships.png)
 
-In order for existing EKS clusters to be imported into Cluster API this
+In order for existing clusters to be imported into Cluster API this
 set of Composite resources exists to facilitate the creation of CAPI resources
 inside the Kubernetes management cluster.
 
@@ -18,8 +18,8 @@ document.
 
 ## Prerequisites
 
-The EKS cluster must have the tag `kubernetes.io/cluster/CLUSTER_NAME` where
-`CLUSTER_NAME` is the name of your EKS cluster.
+The cluster must have the tag `kubernetes.io/cluster/CLUSTER_NAME` where
+`CLUSTER_NAME` is the name of your cluster.
 
 If this tag does not exist, CAPA complains on import and will report this back
 on the status of the `AWSManagedControlPlane`.
@@ -28,12 +28,11 @@ The nodegroup must have the tag `kubernetes.io/cluster/CLUSTER_NAME: owned`
 
 ## Crossplane Observation
 
-In order to import EKS clusters, crossplane needs three pieces of information
-from the customer.
+In order to import clusters, crossplane needs the following pieces of information:
 
-- The region the cluster is built in
 - The cluster name
-- The nodegroup name
+- The region the cluster is built in
+- *Azure only* Resource group name
 
 The XRD then creates `ObserveOnly` resources for the EKS Cluster, the VPC
 derived from the cluster and the Nodegroup.
@@ -132,7 +131,6 @@ In this instance it is safe to remove the finalisers from all stuck objects.
 
 - AWSManagedMachinePool
 - AWSManagedControlPlane
-- Cluster
 
 ## Troubleshooting
 

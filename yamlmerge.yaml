@@ -2,7 +2,7 @@
 #
 # This is for helping to build XRD schemas by automating adding the provider CRD `atProvier` to the XR status
 ---
-template: ./xrd/definition.yaml
+template: ./crossplane/composition/definition.yaml
 crds:
   - mergeAt: .spec.versions[0].schema.openAPIV3Schema.properties.status.properties.aws.properties.cluster.properties
     mergeFrom: .spec.versions[0].schema.openAPIV3Schema.properties.status.properties.atProvider.properties

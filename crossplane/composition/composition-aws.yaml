@@ -202,6 +202,11 @@ spec:
                   - dependsOn:
                       apiVersion: eks.aws.upbound.io/v1beta1
                       kind: Cluster
+                  - patchesFrom:
+                      apiVersion: crossplane.giantswarm.io/v1alpha1
+                      kind: CompositeImport
+                      fieldPath: status.aws.cluster.createdAt
+                    toFieldPath: metadata.annotations[giantswarm.io/external-cluster-created]
 
                 forProvider:
                   manifest:
@@ -268,6 +273,8 @@ spec:
                 toFieldPath: spec.forProvider.manifest.spec.clusterNetwork.pods.cidrBlocks[0]
               - fromFieldPath: spec.clusterName
                 toFieldPath: spec.references[0].dependsOn.name
+              - fromFieldPath: metadata.labels[crossplane.io/composite]
+                toFieldPath: spec.references[1].patchesFrom.name
 
           # ----------------------------------------------------------------------------------------------------------------
           # Cluster API for AWS Resources
