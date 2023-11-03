@@ -2,8 +2,8 @@
 
 ![Crossplane to ClusterAPI relationships](./docs/images/crossplane-capi-relationships.png)
 
-In order for existing clusters to be imported into Cluster API this
-set of Composite resources exists to facilitate the creation of CAPI resources
+In order for existing clusters to be imported into Cluster API (CAPI) this set
+of Composite resources exists to facilitate the creation of CAPI resources
 inside the Kubernetes management cluster.
 
 This works in three parts. Crossplane Observation, resource creation, CAPI
@@ -21,77 +21,39 @@ document.
 The cluster must have the tag `kubernetes.io/cluster/CLUSTER_NAME` where
 `CLUSTER_NAME` is the name of your cluster.
 
-If this tag does not exist, CAPA complains on import and will report this back
-on the status of the `AWSManagedControlPlane`.
+If this tag does not exist, it will be reported by the relevant CAPI provider
+on import and will be reported back on the status of the relevant 
+`ManagedControlPlane`.
 
 The nodegroup must have the tag `kubernetes.io/cluster/CLUSTER_NAME: owned`
 
 ## Crossplane Observation
 
-In order to import clusters, crossplane needs the following pieces of information:
+In order to import clusters, crossplane needs the following pieces of 
+information:
 
 - The cluster name
 - The region the cluster is built in
 - *Azure only* Resource group name
 
-The XRD then creates `ObserveOnly` resources for the EKS Cluster, the VPC
-derived from the cluster and the Nodegroup.
+The composition then creates `ObserveOnly` resources for the required Cluster
+and any required supporting infrastructure for that provider.
 
-Additionally to this crossplane will also create a secret containing the cluster
-authentication information although this information is also subsequently
-gathered by CAPI and not actually required as anything other than an back door.
-We may choose to drop the creation of this object in future.
-
-## IAM Permissions
-
-In order to collect information from AWS, crossplane requires read only
-permissions for EKS and some EC2 resources.
-
-CAPI requires an enhanced permission set that includes some write actions for
-tagging and security group creation.
-
-For a breakdown of the permissions used by this composition, please see the
-document [iam-permissions](./docs/iam-permissions.md).
-
-## Providers
-
-For crossplane to be able to read from AWS and create Kubernetes objects, the
-following providers must be installed.
-
-- `upbound/provider-aws-ec2`
-  - installed with `--enableManagementPolicies`
-- `upbound/provider-aws-eks`
-  - installed with `--enableManagementPolicies`
-- `crossplane-contrib/provider-kubernetes`
-
-To install and configure the cloud providers, please see the documentation in
-[`management-cluster-bases`](https://github.com/giantswarm/management-cluster-bases/tree/main/extras/crossplane)
-
-To install and configure the `kubernetes provider, please see the documentation
-on [setting up provider-kubernetes](./docs/install-kubernetes-provider.md)
-
-### IRSA configuration for AWS crossplane providers
-
-IRSA must be configured on the service account linked to each of the pods in the
-`provider-aws` family. For instructions on how to set this up, please see the
-documentation [Using `crossplane` with IAM Roles for Service Accounts](https://github.com/giantswarm/management-cluster-bases/tree/main/extras/crossplane/providers/upbound/aws#using-crossplane-with-iam-roles-for-service-accounts).
-
-Once the provider pods have been installed, a secondary role needs to be created
-for both crossplane and CAPI to bind on to. For documentation on setting up that
-role, please see the [Secondary role instructions](./docs/secondary-role-instructions.md)
+Once observe resources have reconciled, crossplane then uses this information
+to create relevant resources in ClusterAPI.
 
 ## Installation
 
 Once crossplane has been configured correctly and all providers installed, the
-next step is to  install the XRDs. These must exist first before binding any
-claims to them.
+next step is to  install the composite resource definition and composition.
 
 **Note** The instructions given here will be manual but these may be done with
 fluxcd in a real installation scenario. See [installing with fluxcd](./docs/installing-with-fluxcd.md)
 for instructions on how to achieve this.
 
 ```bash
-k apply -f xrd
+k apply -f crossplane/composition/definition.yaml
+k apply -f crossplane/composition/composition-[PROVIDER].yaml
 ```
 
 Next, we need to apply the provider config.
