@@ -8,7 +8,7 @@
 # aws_account_id = <account-id>
 # aws_oidc_endpoint = <oidc-endpoint>
 #
-# additionally, a matching profile must be configured in ~/.aws/config 
+# additionally, a matching profile must be configured in ~/.aws/config
 # with region on the first line below the profile name
 #
 # [profile profilename]
@@ -64,7 +64,7 @@ function wait_for_deployment() {
 
     echo "Waiting for $deployment deployment to become ready"
     until kubectl get deploy -n $namespace $deployment -o yaml 2>/dev/null \
-        | yq '.status.conditions[] | select(.reason == "MinimumReplicasAvailable") .status' | grep -q True; 
+        | yq '.status.conditions[] | select(.reason == "MinimumReplicasAvailable") .status' | grep -q True;
     do
         echo -n .
         sleep 1
@@ -100,6 +100,7 @@ function wait_for_crds() {
 }
 
 # Install CAPI/CAPA - does not require stack initialisation
+# requires clusterctl, clusterawsadm
 clusterctl init --infrastructure=aws:v2.2.2
 wait_for_deployment capa-system capa-controller-manager
 cat ./capa-config.yaml | envsubst | kubectl apply -f -

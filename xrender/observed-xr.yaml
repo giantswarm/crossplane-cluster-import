@@ -1,0 +1,233 @@
+apiVersion: crossplane.giantswarm.io/v1alpha1
+kind: CompositeImport
+metadata:
+  creationTimestamp: "2023-11-05T11:59:02Z"
+  finalizers:
+  - composite.apiextensions.crossplane.io
+  - kubernetes.crossplane.io/referred-by-object-100f6ee3-4e0d-4d4c-a47b-68e06a6edf53
+  - kubernetes.crossplane.io/referred-by-object-c941e889-fdf6-4dbf-b97c-5726ecec7110
+  generateName: sample-customer-
+  generation: 6
+  labels:
+    crossplane.io/claim-name: sample-customer
+    crossplane.io/claim-namespace: org-sample
+    crossplane.io/composite: sample-customer-8zr46
+    owner: honeybadger
+    provider: aws
+  name: sample-customer-8zr46
+  resourceVersion: "4109"
+  uid: d4d1326c-5895-4c21-a7d2-7bf120a1fc9b
+spec:
+  claimRef:
+    apiVersion: crossplane.giantswarm.io/v1alpha1
+    kind: ImportClaim
+    name: sample-customer
+    namespace: org-sample
+  cloudProviderConfigRef: aws-import
+  clusterName: sample-customer
+  clusterProviderConfigRef: kubernetes-provider
+  compositionRef:
+    name: aws-eks-import
+  compositionRevisionRef:
+    name: aws-eks-import-21d7a81
+  compositionSelector:
+    matchLabels:
+      component: aws-eks-import
+      provider: aws
+  compositionUpdatePolicy: Manual
+  deletionPolicy: Delete
+  kubernetesAdditionalLabels:
+    app: cluster-eks
+    app.kubernetes.io/managed-by: crossplane
+    cluster-apps-operator.giantswarm.io/watching: ""
+    cluster.x-k8s.io/watch-filter: capi
+    giantswarm.io/organization: giantswarm
+    giantswarm.io/service-priority: highest
+  objectDeletionPolicy: Delete
+  regionOrLocation: eu-central-1
+  resourceRefs:
+  - apiVersion: ec2.aws.upbound.io/v1beta1
+    kind: Subnet
+    name: sample-customer-subnet-00000000000000000
+  - apiVersion: ec2.aws.upbound.io/v1beta1
+    kind: Subnet
+    name: sample-customer-subnet-11111111111111111
+  - apiVersion: ec2.aws.upbound.io/v1beta1
+    kind: Subnet
+    name: sample-customer-subnet-22222222222222222
+  - apiVersion: ec2.aws.upbound.io/v1beta1
+    kind: Subnet
+    name: sample-customer-subnet-33333333333333333
+  - apiVersion: ec2.aws.upbound.io/v1beta1
+    kind: Subnet
+    name: sample-customer-subnet-44444444444444444
+  - apiVersion: ec2.aws.upbound.io/v1beta1
+    kind: Subnet
+    name: sample-customer-subnet-55555555555555555
+  - apiVersion: ec2.aws.upbound.io/v1beta1
+    kind: VPC
+    name: sample-customer
+  - apiVersion: eks.aws.upbound.io/v1beta1
+    kind: ClusterAuth
+    name: sample-customer-eks-cluster-auth
+  - apiVersion: eks.aws.upbound.io/v1beta1
+    kind: Cluster
+    name: sample-customer
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: sample-customer-awsclusterroleidentity
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: sample-customer-awsmanagedcluster
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: sample-customer-awsmanagedcontrolplane
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: sample-customer-cluster
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: sample-customer-ng-1
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: sample-customer-ng-1-mp
+status:
+  aws:
+    cluster:
+      arn: arn:aws:eks:eu-central-1:123456789123:cluster/sample-customer
+      certificateAuthority:
+      - data: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+      createdAt: 2023-06-15 12:56:46.457 +0000 UTC
+      endpoint: https://01234567890123456789012345678901.gr7.eu-central-1.eks.amazonaws.com
+      id: sample-customer
+      identity:
+      - oidc:
+        - issuer: https://oidc.eks.eu-central-1.amazonaws.com/id/01234567890123456789012345678901
+      kubernetesNetworkConfig:
+      - ipFamily: ipv4
+        serviceIpv4Cidr: 10.100.0.0/16
+        serviceIpv6Cidr: ""
+      platformVersion: eks.8
+      roleArn: arn:aws:iam::123456789123:role/eksctl-sample-customer-cluster-ServiceRole-1CL24AWNQL2HF
+      status: ACTIVE
+      tags:
+        Name: sample-customer
+        alpha.eksctl.io/cluster-name: sample-customer
+        alpha.eksctl.io/cluster-oidc-enabled: "false"
+        alpha.eksctl.io/eksctl-version: 0.144.0-dev+92e3cd383.2023-06-09T12:43:37Z
+        eksctl.cluster.k8s.io/v1alpha1/cluster-name: sample-customer
+        kubernetes.io/cluster/sample-customer: "true"
+        sigs.k8s.io/cluster-api-provider-aws/cluster/sample-customer: owned
+        sigs.k8s.io/cluster-api-provider-aws/role: common
+      tagsAll:
+        Name: sample-customer
+        alpha.eksctl.io/cluster-name: sample-customer
+        alpha.eksctl.io/cluster-oidc-enabled: "false"
+        alpha.eksctl.io/eksctl-version: 0.144.0-dev+92e3cd383.2023-06-09T12:43:37Z
+        eksctl.cluster.k8s.io/v1alpha1/cluster-name: sample-customer
+        kubernetes.io/cluster/sample-customer: "true"
+        sigs.k8s.io/cluster-api-provider-aws/cluster/sample-customer: owned
+        sigs.k8s.io/cluster-api-provider-aws/role: common
+      version: "1.25"
+      vpcConfig:
+      - clusterSecurityGroupId: sg-SG1SG1SG1SG1SG1SG
+        endpointPrivateAccess: false
+        endpointPublicAccess: true
+        publicAccessCidrs:
+        - 0.0.0.0/0
+        securityGroupIds:
+        - sg-SG2SG2SG2SG2SG2SG
+        subnetIds:
+        - subnet-00000000000000000
+        - subnet-11111111111111111
+        - subnet-22222222222222222
+        - subnet-33333333333333333
+        - subnet-44444444444444444
+        - subnet-55555555555555555
+        vpcId: vpc-VPCVPCVPCVPCVPCVPC
+    vpc:
+      arn: arn:aws:ec2:eu-central-1:123456789123:vpc/vpc-VPCVPCVPCVPCVPCVPC
+      assignGeneratedIpv6CidrBlock: false
+      cidrBlock: 192.168.0.0/16
+      defaultRouteTableId: rtb-RTBLRTBLRTBLRTBLR
+      defaultSecurityGroupId: sg-SGSGSGSGSGSGSGSGS
+      dhcpOptionsId: dopt-96a759fc
+      enableClassiclink: false
+      enableClassiclinkDnsSupport: false
+      enableDnsHostnames: true
+      enableDnsSupport: true
+      enableNetworkAddressUsageMetrics: false
+      id: vpc-VPCVPCVPCVPCVPCVPC
+      instanceTenancy: default
+      ipv6AssociationId: ""
+      ipv6CidrBlock: ""
+      ipv6CidrBlockNetworkBorderGroup: ""
+      ipv6IpamPoolId: ""
+      ipv6NetmaskLength: 0
+      mainRouteTableId: rtb-RTBLRTBLRTBLRTBLR
+      ownerId: "123456789123"
+      tags:
+        Name: eksctl-sample-customer-cluster/VPC
+        alpha.eksctl.io/cluster-name: sample-customer
+        alpha.eksctl.io/cluster-oidc-enabled: "false"
+        alpha.eksctl.io/eksctl-version: 0.144.0-dev+92e3cd383.2023-06-09T12:43:37Z
+        eksctl.cluster.k8s.io/v1alpha1/cluster-name: sample-customer
+      tagsAll:
+        Name: eksctl-sample-customer-cluster/VPC
+        alpha.eksctl.io/cluster-name: sample-customer
+        alpha.eksctl.io/cluster-oidc-enabled: "false"
+        alpha.eksctl.io/eksctl-version: 0.144.0-dev+92e3cd383.2023-06-09T12:43:37Z
+        eksctl.cluster.k8s.io/v1alpha1/cluster-name: sample-customer
+  conditions:
+  - lastTransitionTime: "2023-11-05T11:59:07Z"
+    reason: ReconcileSuccess
+    status: "True"
+    type: Synced
+  - lastTransitionTime: "2023-11-05T11:59:23Z"
+    message: 'Unready resources: awsmanagedcontrolplane, clusterCr, and eks-cluster-vpc'
+    reason: Creating
+    status: "False"
+    type: Ready
+  subnets:
+  - availabilityZone: eu-central-1c
+    cidrBlock: 192.168.128.0/19
+    id: subnet-00000000000000000
+    ipv6CidrBlock: ""
+    isIpV6: false
+    isPublic: false
+    tags: {}
+  - availabilityZone: eu-central-1b
+    cidrBlock: 192.168.64.0/19
+    id: subnet-11111111111111111
+    ipv6CidrBlock: ""
+    isIpV6: false
+    isPublic: true
+    tags: {}
+  - availabilityZone: eu-central-1b
+    cidrBlock: 192.168.160.0/19
+    id: subnet-22222222222222222
+    ipv6CidrBlock: ""
+    isIpV6: false
+    isPublic: false
+    tags: {}
+  - availabilityZone: eu-central-1a
+    cidrBlock: 192.168.96.0/19
+    id: subnet-33333333333333333
+    ipv6CidrBlock: ""
+    isIpV6: false
+    isPublic: false
+    tags: {}
+  - availabilityZone: eu-central-1c
+    cidrBlock: 192.168.32.0/19
+    id: subnet-44444444444444444
+    ipv6CidrBlock: ""
+    isIpV6: false
+    isPublic: true
+    tags: {}
+  - availabilityZone: eu-central-1a
+    cidrBlock: 192.168.0.0/19
+    id: subnet-55555555555555555
+    ipv6CidrBlock: ""
+    isIpV6: false
+    isPublic: true
+
