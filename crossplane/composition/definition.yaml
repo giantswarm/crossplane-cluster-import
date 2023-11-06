@@ -4002,38 +4002,38 @@ spec:
                           those inherited from the provider default_tags configuration
                           block.
                         type: object
-              vpcId:
-                type: string
-                description: The ID of the VPC the cluster is located in
-              endpoint:
-                type: string
-                description: The endpoint of the EKS cluster
-              serviceCidr:
-                type: string
-                description: The CIDR range used for EKS services
-              podCidr:
-                type: string
-                description: The CIDR range used for EKS pods (comes from cluster
-                  VPC)
               subnets:
                 type: array
+                x-kubernetes-list-type: map
+                x-kubernetes-list-map-keys:
+                - id
                 items:
                   type: object
+                  x-kubernetes-map-type: granular
                   additionalProperties: true
-              securityGroups:
-                type: object
-                description: Security groups assigned to the EKS cluster
-                properties:
-                  cluster:
-                    type: string
-                  controlPlane:
-                    type: string
-              oidcIssuer:
-                type: string
-                description: The OIDC Issuer address for this cluster
-              roleName:
-                type: string
-                description: The name of the role assigned to this cluster
-              version:
-                type: string
-                description: The EKS version installed
+                  properties:
+                    id:
+                      description: The ID for this subnet
+                      type: string
+                    availabilityZone:
+                      description: The availability zone this subnet is located in
+                      type: string
+                    cidrBlock:
+                      description: The IPv4 CIDR block assigned to this subnet
+                      type: string
+                    ipv6CidrBlock:
+                      description: The IPv6 CIDR block assigned to this subnet
+                      type: string
+                    isIpV6:
+                      description: Is IPv6 enabled on this subnet
+                      type: boolean
+                    isPublic:
+                      description: Is this subnet public facing
+                      type: boolean
+                    tags:
+                      type: object
+                      x-kubernetes-map-type: granular
+                      additionalProperties:
+                        type: string
+                  required:
+                  - id
