@@ -266,7 +266,7 @@ spec:
 
               - fromFieldPath: status.aws.cluster.kubernetesNetworkConfig[0].serviceIpv4Cidr
                 toFieldPath: spec.forProvider.manifest.spec.clusterNetwork.services.cidrBlocks[0]
-              - fromFieldPath: status.aws.vppc.cidrBlock
+              - fromFieldPath: status.aws.vpc.cidrBlock
                 toFieldPath: spec.forProvider.manifest.spec.clusterNetwork.pods.cidrBlocks[0]
               - fromFieldPath: spec.clusterName
                 toFieldPath: spec.references[0].dependsOn.name
