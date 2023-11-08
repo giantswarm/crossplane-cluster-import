@@ -1,0 +1,29 @@
+---
+apiVersion: crossplane.giantswarm.io/v1alpha1
+kind: ImportClaim
+metadata:
+  name: awstest
+  namespace: org-sample
+  labels:
+    owner: honeybadger
+    provider: aws
+    app.kubernetes.io/instance: eks-import
+    app.kubernetes.io/managed-by: crossplane
+spec:
+  clusterName: adopttest
+  regionOrLocation: eu-central-1
+  cloudProviderConfigRef: aws-import
+  clusterProviderConfigRef: kubernetes-provider
+  kubernetesAdditionalLabels:
+    app:  crossplane-capi-import
+    app.kubernetes.io/managed-by: crossplane
+    cluster-apps-operator.giantswarm.io/watching: ""
+    cluster.x-k8s.io/watch-filter: capi
+    giantswarm.io/organization: giantswarm
+    giantswarm.io/service-priority: highest
+
+  compositionUpdatePolicy: Manual
+  compositionSelector:
+    matchLabels:
+      provider: aws
+      component: aws-eks-import

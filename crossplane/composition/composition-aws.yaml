@@ -151,9 +151,6 @@ spec:
                       type: Format
                       fmt: "%s-eks-cluster-vpc"
 
-              - fromFieldPath: spec.clusterName
-                toFieldPath: metadata.name
-
               - type: ToCompositeFieldPath
                 toFieldPath: status.aws.vpc
                 fromFieldPath: status.atProvider
