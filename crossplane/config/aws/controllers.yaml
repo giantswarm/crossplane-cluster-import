@@ -34,11 +34,6 @@ spec:
             - name: package-runtime
               args:
                 - --debug
-                #- --enable-management-policies
-  serviceAccountTemplate:
-    metadata:
-      name: upbound-provider-aws-importer
-
 ---
 # DeploymentRuntimeConfig for composition functions
 apiVersion: pkg.crossplane.io/v1beta1
@@ -58,9 +53,6 @@ spec:
             args:
             - --debug
             imagePullPolicy: Always
-  serviceAccountTemplate:
-    metadata:
-      name: upbound-provider-aws-importer
 
 ---
 # DeploymentRuntimeConfig for the kubernetes provider

@@ -7,13 +7,17 @@ metadata:
   labels:
     owner: honeybadger
     provider: aws
-    app.kubernetes.io/instance: eks-import
+    app.kubernetes.io/instance: adopttest
     app.kubernetes.io/managed-by: crossplane
 spec:
   clusterName: adopttest
   regionOrLocation: eu-central-1
-  cloudProviderConfigRef: aws-import
+
   clusterProviderConfigRef: kubernetes-provider
+
+  cloudProviderConfigRef: aws-adoption
+  objectDeletionPolicy: Orphan
+
   kubernetesAdditionalLabels:
     app:  crossplane-capi-import
     app.kubernetes.io/managed-by: crossplane

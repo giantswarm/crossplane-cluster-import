@@ -6,7 +6,7 @@ metadata:
   annotations:
     xrender.crossplane.io/runtime: Development
 spec:
-  package: docker.io/choclab/function-generate-subnets:v0.0.1
+  package: docker.io/choclab/function-generate-subnets:v0.0.3
   runtimeConfigRef:
     name: aws-importer-functions
 ---
@@ -17,7 +17,7 @@ metadata:
   annotations:
     xrender.crossplane.io/runtime: Development
 spec:
-  package: docker.io/choclab/function-describe-nodegroups:v0.0.1
+  package: docker.io/choclab/function-describe-nodegroups:v0.0.28
   runtimeConfigRef:
     name: aws-importer-functions
 

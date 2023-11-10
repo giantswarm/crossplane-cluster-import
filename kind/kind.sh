@@ -18,7 +18,7 @@
 
 if which bwv &>/dev/null; then
   # this is custom for martin
-  export GITHUB_TOKEN=$(bwv "development/github.com?field=full-access-token-never-expire" | jq -r .value);
+  export GITHUB_TOKEN=$(bwv "development/github.com?field=full-access-token" | jq -r .value);
   export AWS_PROFILE=honeybadgermc
 fi
 
@@ -135,7 +135,7 @@ mkdir podidhook && {
 } && rm -rf podidhook
 
 # Install crossplane
-helm install crossplane --namespace crossplane --create-namespace crossplane-master/crossplane --devel --set image.repository=docker.io/choclab/crossplane,image.tag=v1.14.1-debug,image.pullPolicy=Always
+helm install crossplane --namespace crossplane --create-namespace crossplane-master/crossplane --devel --set args='{"--debug"}'
 echo "Waiting for crossplane CRDs"
 wait_for_crds deploymentruntimeconfigs.pkg.crossplane.io providers.pkg.crossplane.io functions.pkg.crossplane.io
 
