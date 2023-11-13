@@ -18,5 +18,5 @@ crds:
     version: v0.38.0
   - mergeAt: .spec.versions[0].schema.openAPIV3Schema.properties.status.properties.gcp.properties.cluster.properties
     mergeFrom: .spec.versions[0].schema.openAPIV3Schema.properties.status.properties.atProvider.properties
-    fileUrl: "https://raw.githubusercontent.com/upbound/provider-gcp//{{ .Version }}/package/crds/container.gcp.upbound.io_clusters.yaml"
+    fileUrl: "https://raw.githubusercontent.com/upbound/provider-gcp/{{ .Version }}/package/crds/container.gcp.upbound.io_clusters.yaml"
     version: v0.38.0
