@@ -51,7 +51,7 @@ following contents, setting the variable `AWS_ACCOUNT_ID` to the account the
 management cluster is located in.
 
 ```yaml
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: crossplane-resources
