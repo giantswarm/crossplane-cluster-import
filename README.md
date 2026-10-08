@@ -246,6 +246,6 @@ logs for Nodegroup objects will show up in the logs for
 [Cluster Api]: https://cluster-api.sigs.k8s.io/
 [composition breakdown]: ./docs/composition-breakdown.md
 [installing with fluxcd]: ./docs/installing-with-fluxcd.md
-[`aws providerconfig`]: ./crossplane/config/providerconfig.yaml
+[`aws providerconfig`]: ./crossplane/config/aws/providerconfig.yaml
 [Management policies]: https://docs.crossplane.io/v1.13/concepts/managed-resources/#managementpolicies
 [Crossplane to ClusterAPI relationships]: ./docs/images/crossplane-capi-relationships.drawio.png
